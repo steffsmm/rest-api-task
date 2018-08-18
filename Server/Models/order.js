@@ -7,7 +7,7 @@ var Order = mongoose.model('Order',{
 	},
 	date: {
 		type: String,
-    	required: true
+    	required: false
 	},
 	products: {
 		type: Object,
