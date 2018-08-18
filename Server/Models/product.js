@@ -2,16 +2,20 @@ var mongoose = require('mongoose');
 
 var Product = mongoose.model('Product',{
 	id:{
-		type: Number
+		type: Number,
+    	required: true
 	},
 	name: {
-		type: String
+		type: String,
+    	required: true
 	},
 	category: {
-		type: String
+		type: String,
+    	required: true
 	},
 	price: {
-		type: Number
+		type: Number,
+    	required: true
 	}
 });
 
