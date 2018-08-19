@@ -1,4 +1,5 @@
 var mongoose = require('mongoose');
+const jwt = require('jsonwebtoken');
 
 var Product = mongoose.model('Product',{
 	id:{
@@ -19,4 +20,10 @@ var Product = mongoose.model('Product',{
 	}
 });
 
-module.exports = {Product};
+var getCountryCode = function(req){
+	return jwt.verify(req.header('x-auth'),'secret').countryCode;
+};
+
+
+
+module.exports = {Product,getCountryCode};

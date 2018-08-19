@@ -5,11 +5,13 @@ const {ObjectID} = require('mongodb');
 var app = express();
 var {mongoose} = require('./db/mongoose');
 var {Product} = require('./Models/product');
+var {getCountryCode} = require('./Models/product');
 var {Order} = require('./Models/order');
 var {User} = require('./Models/user');
 var {getOrderDate} = require('./Models/order');
 var {getVat} = require('./vat/vat');
 var {authenticate} = require('./middlewere/authenticate');
+
 app.use(bodyParser.json());
 
 app.post('/products',authenticate,(req,res)=>{
@@ -45,13 +47,12 @@ app.get('/products/:id',authenticate,(req,res)=>{
 		if(!product){
 			return res.status(404).send();
 		}
-
 		res.send({product});
 
 	}).catch(()=>{
-		res.status(400).send()
-	})
-})
+		res.status(400).send();
+	});
+});
 
 
 app.delete('/products/:id',authenticate,(req,res)=>{
@@ -60,14 +61,10 @@ app.delete('/products/:id',authenticate,(req,res)=>{
 	if(!ObjectID.isValid(id)){
 		return res.status(404).send();
 	}
-
-
 	Product.findByIdAndRemove(id).then((product)=>{
 		if(!product){
 			return res.status(404).send();
 		}
-
-
 		res.send(product)
 	}).catch((e)=>{
 		res.status(400).send();
@@ -81,13 +78,10 @@ app.patch('/products/:id',authenticate,(req,res)=>{
 	if(!ObjectID.isValid(id)){
 		return res.status(404).send();
 	}
-
 	Product.findByIdAndUpdate(id,{$set:body},{new:true}).then((product)=>{
 		if(!product){
 			return res.status(404).send();
 		}
-
-
 		res.send({product});
 	}).catch((e)=>{
 		res.status(400).send();
@@ -104,6 +98,7 @@ app.get('/products/price/:id',authenticate,(req,res)=>{
 	if(!ObjectID.isValid(id)){
 		return res.status(404).send();
 	}
+	var countryCode = getCountryCode(req);
 
 	Product.findById(id).then((product)=>{
 		if(!product){
@@ -111,39 +106,20 @@ app.get('/products/price/:id',authenticate,(req,res)=>{
 		}
 		var price = product.price;
 
-	
-	getVat("BG",price,(errorMessage, result)=>{
-      if (errorMessage){
-      	console.log(errorMessage);
-        return Promise.reject()
-      }
-      if (result){
-      	console.log("result",result);
-      	var vatPrice = result.vat;
-      	res.send({vatPrice});
-      	return result;
-      }
-    })
-	// console.log(vatPrice);
-	// 	res.send({vatPrice});
+		getVat(countryCode,price,(errorMessage, result)=>{
+	      if (errorMessage){
+	        res.status(400).send();
+	      }
+	      if (result){
+	      	var vatPrice = result.vat;
+	      	res.send({vatPrice});
+	      }
+	    });
 
 	}).catch(()=>{
-		res.status(400).send()
+		res.status(400).send();
 	})
-})
-
-
-
-
-
-
-
-
-
-
-
-
-
+});
 
 
 
@@ -176,7 +152,6 @@ app.get('/orders/:id',authenticate,(req,res)=>{
 	if(!ObjectID.isValid(id)){
 		return res.status(404).send();
 	}
-
 	Order.findById(id).then((order)=>{
 		if(!order){
 			return res.status(404).send();
@@ -185,9 +160,9 @@ app.get('/orders/:id',authenticate,(req,res)=>{
 		res.send({order});
 
 	}).catch(()=>{
-		res.status(400).send()
-	})
-})
+		res.status(400).send();
+	});
+});
 
 
 app.delete('/orders/:id',authenticate,(req,res)=>{
@@ -196,15 +171,11 @@ app.delete('/orders/:id',authenticate,(req,res)=>{
 	if(!ObjectID.isValid(id)){
 		return res.status(404).send();
 	}
-
-
 	Order.findByIdAndRemove(id).then((order)=>{
 		if(!order){
 			return res.status(404).send();
 		}
-
-
-		res.send(order)
+		res.send(order);
 	}).catch((e)=>{
 		res.status(400).send();
 	});
@@ -220,49 +191,24 @@ app.patch('/orders/:id',authenticate,(req,res)=>{
 	if(!body.date){
 		body.date = undefined;
 	}
-		body.date = getOrderDate();
+	
+	body.date = getOrderDate();
 	
 	Order.findByIdAndUpdate(id,{$set:body},{new:true}).then((order)=>{
 		if(!order){
 			return res.status(404).send();
 		}
-
-
 		res.send({order});
 	}).catch((e)=>{
 		res.status(400).send();
 	});
-
 });
 
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 app.post('/users',(req,res)=>{
-	var body = _.pick(req.body, ['username','password'])
+	var body = _.pick(req.body, ['username','password']);
 	var user = new User(body);
 	user.save().then((user)=>{
 		//res.send(doc);
@@ -291,8 +237,8 @@ app.post('/users/login',(req,res)=>{
 		});
 	}).catch((e)=>{
 		res.status(400).send();
-	})
-})
+	});
+});
 
 app.delete('/users/me/token',authenticate,(req,res)=>{
 	req.user.removeToken(req.token).then(()=>{
@@ -300,8 +246,10 @@ app.delete('/users/me/token',authenticate,(req,res)=>{
 	}),()=>{
 		res.status(400).send();
 	};
-})
+});
 
-app.listen(3000);
+app.listen(3000,()=>{
+	console.log("Listening to PORT 3000");
+});
 
 module.exports = {app};
