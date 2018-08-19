@@ -10,7 +10,7 @@ var Order = mongoose.model('Order',{
     	required: false
 	},
 	products: {
-		type: Object,
+		type: Array,
     	required: true
 	},
 	status: {
@@ -20,5 +20,10 @@ var Order = mongoose.model('Order',{
 	}
 });
 
+var getOrderDate = function(){
+	var date = new Date();
+	return [date.getFullYear(),date.getMonth() + 1,date.getDate()].join("-");
+}
 
-module.exports = {Order};
+
+module.exports = {Order,getOrderDate};
