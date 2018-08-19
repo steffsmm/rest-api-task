@@ -11,9 +11,9 @@ var {User} = require('./Models/user');
 var {getOrderDate} = require('./Models/order');
 var {getVat} = require('./vat/vat');
 var {authenticate} = require('./middlewere/authenticate');
-
+var {seedDB} = require('./seeds');
 app.use(bodyParser.json());
-
+//seedDB();
 app.post('/products',authenticate,(req,res)=>{
 	var product = new Product({
 		id: req.body.id,
